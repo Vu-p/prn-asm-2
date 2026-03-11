@@ -1,0 +1,118 @@
+@page
+@model app.Pages.Staff.Categories.IndexModel
+@{
+    ViewData["Title"] = "Category Management";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Category Management</h2>
+        <button type="button" class="btn btn-primary" onclick="openCreateModal()">Create New Category</button>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row row-cols-lg-auto g-3 align-items-center">
+                <div class="col-12">
+                    <input type="text" name="SearchTerm" class="form-control" placeholder="Search categories..." value="@Model.SearchTerm">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-secondary">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var category in Model.Categories)
+                        {
+                            <tr>
+                                <td>@category.CategoryName</td>
+                                <td>@category.CategoryDesciption</td>
+                                <td>
+                                    <span class="badge @(category.IsActive ? "bg-success" : "bg-secondary")">
+                                        @(category.IsActive ? "Active" : "Inactive")
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="openEditModal(@category.CategoryId, '@category.CategoryName', '@category.CategoryDesciption', @category.IsActive.ToString().ToLower())">Edit</button>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@category.CategoryId" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this category?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Category Modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="categoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Upsert">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="categoryModalLabel">Category</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" asp-for="UpsertCategory.CategoryId" id="modalCategoryId" />
+                    <div class="mb-3">
+                        <label asp-for="UpsertCategory.CategoryName" class="form-label">Name</label>
+                        <input asp-for="UpsertCategory.CategoryName" class="form-control" id="modalCategoryName" required />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="UpsertCategory.CategoryDesciption" class="form-label">Description</label>
+                        <textarea asp-for="UpsertCategory.CategoryDesciption" class="form-control" id="modalCategoryDesc" required></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input asp-for="UpsertCategory.IsActive" class="form-check-input" type="checkbox" id="modalCategoryActive" />
+                        <label asp-for="UpsertCategory.IsActive" class="form-check-label">Is Active</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function openCreateModal() {
+            document.getElementById('modalCategoryId').value = '0';
+            document.getElementById('modalCategoryName').value = '';
+            document.getElementById('modalCategoryDesc').value = '';
+            document.getElementById('modalCategoryActive').checked = true;
+            document.getElementById('categoryModalLabel').innerText = 'Create Category';
+            new bootstrap.Modal(document.getElementById('categoryModal')).show();
+        }
+
+        function openEditModal(id, name, desc, active) {
+            document.getElementById('modalCategoryId').value = id;
+            document.getElementById('modalCategoryName').value = name;
+            document.getElementById('modalCategoryDesc').value = desc;
+            document.getElementById('modalCategoryActive').checked = active;
+            document.getElementById('categoryModalLabel').innerText = 'Edit Category';
+            new bootstrap.Modal(document.getElementById('categoryModal')).show();
+        }
+    </script>
+}

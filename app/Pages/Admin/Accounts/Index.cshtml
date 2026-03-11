@@ -1,0 +1,123 @@
+@page
+@model app.Pages.Admin.Accounts.IndexModel
+@{
+    ViewData["Title"] = "Account Management";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Account Management</h2>
+        <button type="button" class="btn btn-primary" onclick="openCreateModal()">Create New Account</button>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" class="row row-cols-lg-auto g-3 align-items-center">
+                <div class="col-12">
+                    <input type="text" name="searchTerm" class="form-control" placeholder="Search by name or email..." value="@Model.SearchTerm">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-secondary">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var account in Model.Accounts)
+                        {
+                            <tr>
+                                <td>@account.AccountName</td>
+                                <td>@account.AccountEmail</td>
+                                <td>@(account.AccountRole == 1 ? "Staff" : "Lecturer")</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="openEditModal(@account.AccountId, '@account.AccountName', '@account.AccountEmail', '@account.AccountPassword', @account.AccountRole)">Edit</button>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@account.AccountId" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this account?')">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Account Modal -->
+<div class="modal fade" id="accountModal" tabindex="-1" aria-labelledby="accountModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Upsert">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="accountModalLabel">Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" asp-for="UpsertAccount.AccountId" id="modalAccountId" />
+                    <div class="mb-3">
+                        <label asp-for="UpsertAccount.AccountName" class="form-label">Full Name</label>
+                        <input asp-for="UpsertAccount.AccountName" class="form-control" id="modalAccountName" required />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="UpsertAccount.AccountEmail" class="form-label">Email</label>
+                        <input asp-for="UpsertAccount.AccountEmail" class="form-control" id="modalAccountEmail" type="email" required />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="UpsertAccount.AccountPassword" class="form-label">Password</label>
+                        <input asp-for="UpsertAccount.AccountPassword" class="form-control" id="modalAccountPassword" type="password" required />
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="UpsertAccount.AccountRole" class="form-label">Role</label>
+                        <select asp-for="UpsertAccount.AccountRole" class="form-select" id="modalAccountRole" required>
+                            <option value="1">Staff</option>
+                            <option value="2">Lecturer</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function openCreateModal() {
+            document.getElementById('modalAccountId').value = '0';
+            document.getElementById('modalAccountName').value = '';
+            document.getElementById('modalAccountEmail').value = '';
+            document.getElementById('modalAccountPassword').value = '';
+            document.getElementById('modalAccountRole').value = '1';
+            document.getElementById('accountModalLabel').innerText = 'Create Account';
+            new bootstrap.Modal(document.getElementById('accountModal')).show();
+        }
+
+        function openEditModal(id, name, email, password, role) {
+            document.getElementById('modalAccountId').value = id;
+            document.getElementById('modalAccountName').value = name;
+            document.getElementById('modalAccountEmail').value = email;
+            document.getElementById('modalAccountPassword').value = password;
+            document.getElementById('modalAccountRole').value = role;
+            document.getElementById('accountModalLabel').innerText = 'Edit Account';
+            new bootstrap.Modal(document.getElementById('accountModal')).show();
+        }
+    </script>
+}

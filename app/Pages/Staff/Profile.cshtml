@@ -1,0 +1,51 @@
+@page
+@model app.Pages.Staff.ProfileModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">My Profile</h3>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrEmpty(Model.Message))
+                    {
+                        <div class="alert alert-success">@Model.Message</div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+                    {
+                        <div class="alert alert-danger">@Model.ErrorMessage</div>
+                    }
+
+                    <form method="post">
+                        <div class="mb-3">
+                            <label asp-for="Profile.AccountName" class="form-label">Full Name</label>
+                            <input asp-for="Profile.AccountName" class="form-control" />
+                            <span asp-validation-for="Profile.AccountName" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Profile.AccountEmail" class="form-label">Email</label>
+                            <input asp-for="Profile.AccountEmail" class="form-control" readonly />
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Profile.AccountPassword" class="form-label">Password</label>
+                            <input asp-for="Profile.AccountPassword" class="form-control" type="password" />
+                            <span asp-validation-for="Profile.AccountPassword" class="text-danger"></span>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

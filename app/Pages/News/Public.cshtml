@@ -1,0 +1,114 @@
+@page
+@model app.Pages.News.PublicModel
+@{
+    ViewData["Title"] = "Latest News";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Latest News Articles</h2>
+
+    <div class="row g-4" id="newsContainer">
+        @foreach (var article in Model.Articles)
+        {
+            <div class="col-md-6 col-lg-4 article-card" id="article-@article.NewsArticleId">
+                <div class="card h-100 shadow-sm border-0">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary news-title">@article.NewsTitle</h5>
+                        <p class="card-text"><strong><span class="news-headline">@article.Headline</span></strong></p>
+                        <p class="card-text text-truncate news-content" style="max-height: 4.5em;">@article.NewsContent</p>
+                    </div>
+                    <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center">
+                        <small class="text-muted"><span class="news-date">@article.CreatedDate.ToShortDateString()</span> | <span class="news-category">@article.Category?.CategoryName</span></small>
+                        <a href="#" class="btn btn-sm btn-link p-0">Read More</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <div id="noNewsMessage" class="col-12 text-center py-5 @(Model.Articles.Any() ? "d-none" : "")">
+        <p class="text-muted">No active news articles found.</p>
+    </div>
+</div>
+
+<style>
+    .article-card { transition: all 0.5s ease; }
+    .new-article { animation: fadeIn 0.8s ease-out; }
+    @@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+@section Scripts {
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/news")
+            .build();
+
+        function createCardHtml(article) {
+            const date = new Date(article.createdDate).toLocaleDateString();
+            return `
+                <div class="col-md-6 col-lg-4 article-card new-article" id="article-${article.newsArticleId}">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <h5 class="card-title text-primary news-title">${article.newsTitle}</h5>
+                            <p class="card-text"><strong><span class="news-headline">${article.headline}</span></strong></p>
+                            <p class="card-text text-truncate news-content" style="max-height: 4.5em;">${article.newsContent}</p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center">
+                            <small class="text-muted"><span class="news-date">${date}</span> | <span class="news-category">${article.categoryName || ''}</span></small>
+                            <a href="#" class="btn btn-sm btn-link p-0">Read More</a>
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function updateCard(card, article) {
+            const date = new Date(article.createdDate).toLocaleDateString();
+            card.querySelector('.news-title').innerText = article.newsTitle;
+            card.querySelector('.news-headline').innerText = article.headline;
+            card.querySelector('.news-content').innerText = article.newsContent;
+            card.querySelector('.news-date').innerText = date;
+            card.querySelector('.news-category').innerText = article.categoryName || '';
+        }
+
+        function checkEmpty() {
+            const container = document.getElementById('newsContainer');
+            const noMsg = document.getElementById('noNewsMessage');
+            if (container.children.length === 0) {
+                noMsg.classList.remove('d-none');
+            } else {
+                noMsg.classList.add('d-none');
+            }
+        }
+
+        connection.on("ArticleCreated", function (article) {
+            if (article.newsStatus === 1) { // Only show active
+                const container = document.getElementById('newsContainer');
+                container.insertAdjacentHTML('afterbegin', createCardHtml(article));
+                checkEmpty();
+            }
+        });
+
+        connection.on("ArticleUpdated", function (article) {
+            const card = document.getElementById(`article-${article.newsArticleId}`);
+            if (article.newsStatus === 1) {
+                if (card) {
+                    updateCard(card, article);
+                } else {
+                    const container = document.getElementById('newsContainer');
+                    container.insertAdjacentHTML('afterbegin', createCardHtml(article));
+                }
+            } else {
+                if (card) card.remove();
+            }
+            checkEmpty();
+        });
+
+        connection.on("ArticleDeleted", function (id) {
+            const card = document.getElementById(`article-${id}`);
+            if (card) card.remove();
+            checkEmpty();
+        });
+
+        connection.start().catch(err => console.error(err.toString()));
+    </script>
+}

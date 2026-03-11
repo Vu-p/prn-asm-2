@@ -1,0 +1,56 @@
+@page
+@model app.Pages.Staff.MyNewsModel
+@{
+    ViewData["Title"] = "My News History";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My News History</h2>
+        <a asp-page="/Staff/News/Upsert" class="btn btn-primary">Create New Article</a>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Headline</th>
+                            <th>Category</th>
+                            <th>Created Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var article in Model.Articles)
+                        {
+                            <tr>
+                                <td>@article.NewsTitle</td>
+                                <td>@article.Headline</td>
+                                <td>@article.Category?.CategoryName</td>
+                                <td>@article.CreatedDate.ToString("yyyy-MM-dd HH:mm")</td>
+                                <td>
+                                    <span class="badge @(article.NewsStatus == 1 ? "bg-success" : "bg-secondary")">
+                                        @(article.NewsStatus == 1 ? "Active" : "Inactive")
+                                    </span>
+                                </td>
+                                <td>
+                                    <a asp-page="/Staff/News/Upsert" asp-route-id="@article.NewsArticleId" class="btn btn-sm btn-outline-primary">Edit</a>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.Articles.Any())
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">No news articles found in your history.</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
