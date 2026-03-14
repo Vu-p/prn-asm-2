@@ -18,6 +18,7 @@ public class PublicModel : PageModel
 
     public List<NewsArticle> Articles { get; set; } = new();
     public List<Category> Categories { get; set; } = new();
+    public List<Category> CategoryHierarchy { get; set; } = new();
 
     [BindProperty(SupportsGet = true, Name = "categoryId")]
     public short? SelectedCategoryId { get; set; }
@@ -30,6 +31,11 @@ public class PublicModel : PageModel
         Articles = SelectedCategoryId.HasValue
             ? all.Where(a => a.CategoryId == SelectedCategoryId.Value).ToList()
             : all;
+
+        if (SelectedCategoryId.HasValue)
+        {
+            CategoryHierarchy = await _categoryService.GetCategoryHierarchyAsync(SelectedCategoryId.Value);
+        }
 
         return Page();
     }

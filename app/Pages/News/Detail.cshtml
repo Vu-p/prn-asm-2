@@ -3,80 +3,133 @@
 @{
     ViewData["Title"] = Model.Article?.NewsTitle ?? "Article";
     var article = Model.Article!;
-    // Build category breadcrumb
-    var categoryBreadcrumb = new List<string>();
-    var cat = article.Category;
-    while (cat != null)
-    {
-        categoryBreadcrumb.Insert(0, cat.CategoryName);
-        cat = cat.ParentCategory;
-    }
 }
 
 <div class="container my-5">
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/News/Public">News</a></li>
-            @for (int i = 0; i < categoryBreadcrumb.Count; i++)
-            {
-                if (i == categoryBreadcrumb.Count - 1)
+<div class="row">
+    <!-- Sidebar: Category Tree -->
+    <div class="col-md-3 mb-4">
+        <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
+            <div class="card-header fw-bold bg-primary text-white">Categories</div>
+            <div class="list-group list-group-flush">
+                <a href="/News/Public" class="list-group-item list-group-item-action">All Articles</a>
+                @foreach (var parent in Model.AllCategories.Where(c => c.ParentCategoryId == null && c.IsActive))
                 {
-                    <li class="breadcrumb-item active">@categoryBreadcrumb[i]</li>
-                }
-                else
-                {
-                    <li class="breadcrumb-item">@categoryBreadcrumb[i]</li>
-                }
-            }
-        </ol>
-    </nav>
-
-    <article>
-        <header class="mb-4">
-            <h1 class="display-5 fw-bold">@article.NewsTitle</h1>
-            <p class="lead text-muted">@article.Headline</p>
-            <div class="d-flex gap-3 text-muted small mb-3">
-                <span><i class="bi bi-person"></i> @(article.CreatedBy?.AccountName ?? "Unknown")</span>
-                <span><i class="bi bi-calendar3"></i> @article.CreatedDate.ToString("MMMM dd, yyyy")</span>
-                @if (article.ModifiedDate.HasValue)
-                {
-                    <span><i class="bi bi-pencil"></i> Updated @article.ModifiedDate.Value.ToString("MMM dd, yyyy")</span>
+                    <a href="/News/Public?categoryId=@parent.CategoryId" 
+                       class="list-group-item list-group-item-action fw-semibold @(Model.CategoryHierarchy.Any(h => h.CategoryId == parent.CategoryId) ? "bg-light text-primary" : "")">
+                        @parent.CategoryName
+                    </a>
+                    @foreach (var sub in Model.AllCategories.Where(c => c.ParentCategoryId == parent.CategoryId && c.IsActive))
+                    {
+                        <a href="/News/Public?categoryId=@sub.CategoryId" 
+                           class="list-group-item list-group-item-action ps-4 text-secondary @(Model.CategoryHierarchy.Any(h => h.CategoryId == sub.CategoryId) ? "bg-light text-primary" : "")">
+                            ↳ @sub.CategoryName
+                        </a>
+                        @foreach (var lastChild in Model.AllCategories.Where(c => c.ParentCategoryId == sub.CategoryId && c.IsActive))
+                        {
+                            <a href="/News/Public?categoryId=@lastChild.CategoryId" 
+                               class="list-group-item list-group-item-action ps-5 text-muted small @(Model.CategoryHierarchy.Any(h => h.CategoryId == lastChild.CategoryId) ? "bg-light text-primary" : "")">
+                                ↳ @lastChild.CategoryName
+                            </a>
+                        }
+                    }
                 }
             </div>
+        </div>
+    </div>
 
-            @if (article.NewsTags.Any())
-            {
-                <div class="mb-3">
-                    @foreach (var newsTag in article.NewsTags.Where(nt => nt.Tag != null))
+    <!-- Main Content -->
+    <div class="col-md-9">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/News/Public">News</a></li>
+                @foreach (var h in Model.CategoryHierarchy)
+                {
+                    if (h.CategoryId == article.CategoryId)
                     {
-                        <span class="badge bg-primary me-1">#@newsTag.Tag!.TagName</span>
+                        <li class="breadcrumb-item active">@h.CategoryName</li>
+                    }
+                    else
+                    {
+                        <li class="breadcrumb-item"><a href="/News/Public?categoryId=@h.CategoryId">@h.CategoryName</a></li>
+                    }
+                }
+            </ol>
+        </nav>
+
+        <article>
+            <header class="mb-4">
+                <h1 class="display-5 fw-bold">@article.NewsTitle</h1>
+                <p class="lead text-muted">@article.Headline</p>
+                <div class="d-flex gap-3 text-muted small mb-3">
+                    <span><i class="bi bi-person"></i> @(article.CreatedBy?.AccountName ?? "Unknown")</span>
+                    <span><i class="bi bi-calendar3"></i> @article.CreatedDate.ToString("MMMM dd, yyyy")</span>
+                    @if (article.ModifiedDate.HasValue)
+                    {
+                        <span><i class="bi bi-pencil"></i> Updated @article.ModifiedDate.Value.ToString("MMM dd, yyyy")</span>
                     }
                 </div>
-            }
 
-            @if (!string.IsNullOrWhiteSpace(article.ThumbnailUrl))
+                @if (article.NewsTags.Any())
+                {
+                    <div class="mb-3">
+                        @foreach (var newsTag in article.NewsTags.Where(nt => nt.Tag != null))
+                        {
+                            <span class="badge bg-primary me-1">#@newsTag.Tag!.TagName</span>
+                        }
+                    </div>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(article.ThumbnailUrl))
+                {
+                    <img src="@article.ThumbnailUrl" alt="@article.NewsTitle" class="img-fluid rounded shadow mb-4 w-100" style="max-height:420px; object-fit:cover;" />
+                }
+            </header>
+
+            <div class="article-content">
+                @Html.Raw(article.NewsContent)
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(article.NewsSource))
             {
-                <img src="@article.ThumbnailUrl" alt="@article.NewsTitle" class="img-fluid rounded shadow mb-4 w-100" style="max-height:420px; object-fit:cover;" />
+                <footer class="mt-4 pt-3 border-top text-muted small">
+                    <strong>Source:</strong> @article.NewsSource
+                </footer>
             }
-        </header>
+        </article>
 
-        <div class="article-content">
-            @Html.Raw(article.NewsContent)
-        </div>
-
-        @if (!string.IsNullOrWhiteSpace(article.NewsSource))
+        <!-- Related News Section -->
+        @if (Model.RelatedNews.Any())
         {
-            <footer class="mt-4 pt-3 border-top text-muted small">
-                <strong>Source:</strong> @article.NewsSource
-            </footer>
+            <div class="mt-5 pt-5 border-top">
+                <h3 class="mb-4">Related News</h3>
+                <div class="row g-4">
+                    @foreach (var related in Model.RelatedNews)
+                    {
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                @if (!string.IsNullOrWhiteSpace(related.ThumbnailUrl))
+                                {
+                                    <img src="@related.ThumbnailUrl" class="card-img-top" alt="@related.NewsTitle" style="height:150px; object-fit:cover;" />
+                                }
+                                <div class="card-body">
+                                    <h6 class="card-title text-primary"><a href="/News/Detail/@related.NewsArticleId" class="text-decoration-none">@related.NewsTitle</a></h6>
+                                    <p class="card-text small text-muted">@related.Headline</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
         }
-    </article>
 
-    <div class="mt-5">
-        <a href="/News/Public" class="btn btn-outline-primary">
-            <i class="bi bi-arrow-left"></i> Back to News
-        </a>
+        <div class="mt-5">
+            <a href="/News/Public" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-left"></i> Back to News
+            </a>
+        </div>
     </div>
+</div>
 </div>
 
 <style>

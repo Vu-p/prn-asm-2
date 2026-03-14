@@ -17,4 +17,5 @@ public interface INewsService
     Task DeleteAsync(string id, short userId, bool isAdmin);
     
     Task<List<NewsArticle>> ReportAsync(DateTime startDate, DateTime endDate);
+    Task<List<NewsArticle>> GetRelatedNewsAsync(string articleId, int count);
 }

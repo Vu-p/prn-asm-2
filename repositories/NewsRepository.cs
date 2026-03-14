@@ -92,4 +92,16 @@ public class NewsRepository : BaseRepository<NewsArticle>, INewsRepository
             .OrderByDescending(n => n.CreatedDate)
             .ToListAsync();
     }
+
+    public Task<List<NewsArticle>> GetRelatedNewsAsync(string articleId, List<int> tagIds, int count)
+    {
+        return _dbSet
+            .Include(n => n.Category)
+            .Include(n => n.NewsTags).ThenInclude(nt => nt.Tag)
+            .Where(n => n.NewsArticleId != articleId && n.NewsStatus == 1)
+            .Where(n => n.NewsTags.Any(nt => tagIds.Contains(nt.TagId)))
+            .OrderByDescending(n => n.CreatedDate)
+            .Take(count)
+            .ToListAsync();
+    }
 }

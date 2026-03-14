@@ -11,4 +11,5 @@ public interface INewsRepository : IBaseRepository<NewsArticle>
     Task AddAsync(NewsArticle article, List<int> tagIds);
     Task UpdateAsync(NewsArticle article, List<int> tagIds);
     Task<List<NewsArticle>> ReportAsync(DateTime startDate, DateTime endDate);
+    Task<List<NewsArticle>> GetRelatedNewsAsync(string articleId, List<int> tagIds, int count);
 }

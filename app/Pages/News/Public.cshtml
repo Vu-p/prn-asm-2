@@ -15,15 +15,22 @@
                     @foreach (var cat in Model.Categories.Where(c => c.ParentCategoryId == null && c.IsActive))
                     {
                         <a href="/News/Public?categoryId=@cat.CategoryId"
-                           class="list-group-item list-group-item-action fw-semibold @(Model.SelectedCategoryId == cat.CategoryId ? "active" : "")">
+                           class="list-group-item list-group-item-action fw-semibold @(Model.SelectedCategoryId == cat.CategoryId || Model.CategoryHierarchy.Any(h => h.CategoryId == cat.CategoryId) ? "bg-light text-primary" : "") @(Model.SelectedCategoryId == cat.CategoryId ? "active" : "")">
                             @cat.CategoryName
                         </a>
                         @foreach (var sub in Model.Categories.Where(c => c.ParentCategoryId == cat.CategoryId && c.IsActive))
                         {
                             <a href="/News/Public?categoryId=@sub.CategoryId"
-                               class="list-group-item list-group-item-action ps-4 text-secondary @(Model.SelectedCategoryId == sub.CategoryId ? "active" : "")">
+                               class="list-group-item list-group-item-action ps-4 text-secondary @(Model.SelectedCategoryId == sub.CategoryId || Model.CategoryHierarchy.Any(h => h.CategoryId == sub.CategoryId) ? "bg-light text-primary" : "") @(Model.SelectedCategoryId == sub.CategoryId ? "active" : "")">
                                 ↳ @sub.CategoryName
                             </a>
+                            @foreach (var lastChild in Model.Categories.Where(c => c.ParentCategoryId == sub.CategoryId && c.IsActive))
+                            {
+                                <a href="/News/Public?categoryId=@lastChild.CategoryId" 
+                                   class="list-group-item list-group-item-action ps-5 text-muted small @(Model.SelectedCategoryId == lastChild.CategoryId ? "bg-light text-primary active" : "")">
+                                    ↳ @lastChild.CategoryName
+                                </a>
+                            }
                         }
                     }
                 </div>
@@ -32,7 +39,26 @@
 
         <!-- Main: News Articles -->
         <div class="col-md-9">
-            <h2 class="mb-4">Latest News Articles</h2>
+            @if (Model.CategoryHierarchy.Any())
+            {
+                <nav aria-label="breadcrumb" class="mb-4">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="/News/Public">News</a></li>
+                        @foreach (var h in Model.CategoryHierarchy)
+                        {
+                            if (h.CategoryId == Model.SelectedCategoryId)
+                            {
+                                <li class="breadcrumb-item active">@h.CategoryName</li>
+                            }
+                            else
+                            {
+                                <li class="breadcrumb-item"><a href="/News/Public?categoryId=@h.CategoryId">@h.CategoryName</a></li>
+                            }
+                        }
+                    </ol>
+                </nav>
+            }
+            <h2 class="mb-4">@(Model.SelectedCategoryId.HasValue ? Model.CategoryHierarchy.LastOrDefault()?.CategoryName : "Latest News Articles")</h2>
             <div class="row g-4" id="newsContainer">
                 @foreach (var article in Model.Articles)
                 {

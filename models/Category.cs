@@ -22,4 +22,5 @@ public class Category
     public bool IsActive { get; set; }
 
     public ICollection<NewsArticle> NewsArticles { get; set; } = new List<NewsArticle>();
+    public ICollection<Category> ChildCategories { get; set; } = new List<Category>();
 }

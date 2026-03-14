@@ -37,4 +37,21 @@ public class CategoryService : ICategoryService
         
         await _repo.DeleteAsync(id);
     }
+
+    public async Task<List<Category>> GetCategoryHierarchyAsync(short categoryId)
+    {
+        var hierarchy = new List<Category>();
+        var currentId = (short?)categoryId;
+
+        while (currentId.HasValue)
+        {
+            var category = await _repo.GetByIdAsync(currentId.Value);
+            if (category == null) break;
+
+            hierarchy.Insert(0, category);
+            currentId = category.ParentCategoryId;
+        }
+
+        return hierarchy;
+    }
 }

@@ -79,4 +79,13 @@ public class NewsService : INewsService
 
     public Task<List<NewsArticle>> ReportAsync(DateTime startDate, DateTime endDate) => 
         _repo.ReportAsync(startDate, endDate);
+
+    public async Task<List<NewsArticle>> GetRelatedNewsAsync(string articleId, int count)
+    {
+        var article = await _repo.GetByIdWithDetailsAsync(articleId);
+        if (article == null || !article.NewsTags.Any()) return new List<NewsArticle>();
+
+        var tagIds = article.NewsTags.Select(nt => nt.TagId).ToList();
+        return await _repo.GetRelatedNewsAsync(articleId, tagIds, count);
+    }
 }
