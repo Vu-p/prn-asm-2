@@ -17,6 +17,7 @@ public class IndexModel : PageModel
     }
 
     public List<Category> Categories { get; set; } = new();
+    public List<Category> ParentCategories { get; set; } = new();
 
     [BindProperty]
     public Category UpsertCategory { get; set; } = new();
@@ -27,13 +28,14 @@ public class IndexModel : PageModel
     public async Task OnGetAsync()
     {
         Categories = await _categoryService.GetAllAsync(SearchTerm);
+        ParentCategories = await _categoryService.GetAllAsync(null);
     }
 
     public async Task<IActionResult> OnPostUpsertAsync()
     {
         if (!ModelState.IsValid)
         {
-            Categories = await _categoryService.GetAllAsync(null);
+            ParentCategories = await _categoryService.GetAllAsync(null);
             return Page();
         }
 
@@ -49,15 +51,15 @@ public class IndexModel : PageModel
         return RedirectToPage();
     }
 
-    public async Task<IActionResult> OnPostDeleteAsync(int id)
+    public async Task<IActionResult> OnPostDeleteAsync(short id)
     {
         try
         {
             await _categoryService.DeleteAsync(id);
         }
-        catch (InvalidOperationException ex)
+        catch (Exception)
         {
-            TempData["ErrorMessage"] = ex.Message;
+            TempData["ErrorMessage"] = "Cannot delete this category. It may have sub-categories or associated news articles.";
         }
 
         return RedirectToPage();

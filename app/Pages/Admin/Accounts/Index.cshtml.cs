@@ -49,9 +49,16 @@ public class IndexModel : PageModel
         return RedirectToPage();
     }
 
-    public async Task<IActionResult> OnPostDeleteAsync(int id)
+    public async Task<IActionResult> OnPostDeleteAsync(short id)
     {
-        await _accountService.DeleteAsync(id);
+        try
+        {
+            await _accountService.DeleteAsync(id);
+        }
+        catch (Exception)
+        {
+            TempData["ErrorMessage"] = "Cannot delete this account. It may be associated with existing news articles.";
+        }
         return RedirectToPage();
     }
 }

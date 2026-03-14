@@ -1,7 +1,6 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
-using repositories;
-using services;
+using app.Extensions;
 
 namespace app;
 
@@ -14,32 +13,16 @@ public class Program
         // Add services to the container.
         builder.Services.AddRazorPages();
         builder.Services.AddSignalR();
-
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-        builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(connectionString));
+        builder.Services.AddProjectServices(builder.Configuration);
 
         builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddCookie(options =>
             {
-                options.LoginPath = "/Login";
-                options.AccessDeniedPath = "/AccessDenied";
+                options.LoginPath = "/Auth/Login";
+                options.AccessDeniedPath = "/Auth/AccessDenied";
             });
 
         builder.Services.AddAuthorization();
-
-        builder.Services.AddScoped<IAccountRepository, AccountRepository>();
-        builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-        builder.Services.AddScoped<INewsRepository, NewsRepository>();
-        builder.Services.AddScoped<ITagRepository, TagRepository>();
-
-        builder.Services.AddScoped<IAccountService, AccountService>();
-        builder.Services.AddScoped<ICategoryService, CategoryService>();
-        builder.Services.AddScoped<INewsService, NewsService>();
-
-        var adminConfig = builder.Configuration.GetSection("AdminAccount").Get<AdminAccountConfig>()
-            ?? new AdminAccountConfig();
-        builder.Services.AddSingleton(adminConfig);
 
         var app = builder.Build();
 

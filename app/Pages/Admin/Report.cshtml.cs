@@ -18,11 +18,11 @@ public class ReportModel : PageModel
 
     public List<NewsArticle> ReportData { get; set; } = new();
 
-    [BindProperty(SupportsGet = true)]
-    public DateTime StartDate { get; set; } = DateTime.Now.AddMonths(-1);
+    [BindProperty(SupportsGet = true, Name = "startDate")]
+    public DateTime StartDate { get; set; } = DateTime.UtcNow.AddMonths(-1);
 
-    [BindProperty(SupportsGet = true)]
-    public DateTime EndDate { get; set; } = DateTime.Now;
+    [BindProperty(SupportsGet = true, Name = "endDate")]
+    public DateTime EndDate { get; set; } = DateTime.UtcNow;
 
     public async Task OnGetAsync()
     {

@@ -10,8 +10,11 @@ public interface INewsService
     Task<List<NewsArticle>> GetActiveNewsAsync();
     Task<List<NewsArticle>> GetHistoryByStaffAsync(short staffId);
     Task<List<NewsArticle>> SearchAsync(string? term);
-    Task AddAsync(NewsArticle article, List<int> tagIds);
-    Task UpdateAsync(NewsArticle article, List<int> tagIds);
-    Task DeleteAsync(string id);
+    
+    // Permission-aware methods
+    Task AddAsync(NewsArticle article, List<int> tagIds, short userId, bool isAdmin);
+    Task UpdateAsync(NewsArticle article, List<int> tagIds, short userId, bool isAdmin);
+    Task DeleteAsync(string id, short userId, bool isAdmin);
+    
     Task<List<NewsArticle>> ReportAsync(DateTime startDate, DateTime endDate);
 }

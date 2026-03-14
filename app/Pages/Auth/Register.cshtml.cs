@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using models;
 using services;
 
-namespace app.Pages;
+namespace app.Pages.Auth;
 
 public class RegisterModel : PageModel
 {
@@ -68,6 +68,6 @@ public class RegisterModel : PageModel
 
         await _accounts.AddAsync(newAccount);
 
-        return RedirectToPage("/Login");
+        return RedirectToPage("/Auth/Login");
     }
 }

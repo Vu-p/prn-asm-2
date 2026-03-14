@@ -1,0 +1,87 @@
+@page "{id}"
+@model app.Pages.News.DetailModel
+@{
+    ViewData["Title"] = Model.Article?.NewsTitle ?? "Article";
+    var article = Model.Article!;
+    // Build category breadcrumb
+    var categoryBreadcrumb = new List<string>();
+    var cat = article.Category;
+    while (cat != null)
+    {
+        categoryBreadcrumb.Insert(0, cat.CategoryName);
+        cat = cat.ParentCategory;
+    }
+}
+
+<div class="container my-5">
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/News/Public">News</a></li>
+            @for (int i = 0; i < categoryBreadcrumb.Count; i++)
+            {
+                if (i == categoryBreadcrumb.Count - 1)
+                {
+                    <li class="breadcrumb-item active">@categoryBreadcrumb[i]</li>
+                }
+                else
+                {
+                    <li class="breadcrumb-item">@categoryBreadcrumb[i]</li>
+                }
+            }
+        </ol>
+    </nav>
+
+    <article>
+        <header class="mb-4">
+            <h1 class="display-5 fw-bold">@article.NewsTitle</h1>
+            <p class="lead text-muted">@article.Headline</p>
+            <div class="d-flex gap-3 text-muted small mb-3">
+                <span><i class="bi bi-person"></i> @(article.CreatedBy?.AccountName ?? "Unknown")</span>
+                <span><i class="bi bi-calendar3"></i> @article.CreatedDate.ToString("MMMM dd, yyyy")</span>
+                @if (article.ModifiedDate.HasValue)
+                {
+                    <span><i class="bi bi-pencil"></i> Updated @article.ModifiedDate.Value.ToString("MMM dd, yyyy")</span>
+                }
+            </div>
+
+            @if (article.NewsTags.Any())
+            {
+                <div class="mb-3">
+                    @foreach (var newsTag in article.NewsTags.Where(nt => nt.Tag != null))
+                    {
+                        <span class="badge bg-primary me-1">#@newsTag.Tag!.TagName</span>
+                    }
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(article.ThumbnailUrl))
+            {
+                <img src="@article.ThumbnailUrl" alt="@article.NewsTitle" class="img-fluid rounded shadow mb-4 w-100" style="max-height:420px; object-fit:cover;" />
+            }
+        </header>
+
+        <div class="article-content">
+            @Html.Raw(article.NewsContent)
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(article.NewsSource))
+        {
+            <footer class="mt-4 pt-3 border-top text-muted small">
+                <strong>Source:</strong> @article.NewsSource
+            </footer>
+        }
+    </article>
+
+    <div class="mt-5">
+        <a href="/News/Public" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left"></i> Back to News
+        </a>
+    </div>
+</div>
+
+<style>
+    .article-content img { max-width: 100%; height: auto; border-radius: 8px; }
+    .article-content p { line-height: 1.8; font-size: 1.05rem; }
+    .article-content h2, .article-content h3 { margin-top: 1.5rem; }
+    .article-content blockquote { border-left: 4px solid #0d6efd; padding-left: 1rem; color: #555; font-style: italic; }
+</style>

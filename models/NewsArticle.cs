@@ -23,6 +23,9 @@ public class NewsArticle
     [StringLength(400)]
     public string? NewsSource { get; set; }
 
+    [StringLength(500)]
+    public string? ThumbnailUrl { get; set; }
+
     [Required]
     public short CategoryId { get; set; }
 

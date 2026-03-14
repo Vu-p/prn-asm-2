@@ -2,9 +2,6 @@ using models;
 
 namespace repositories;
 
-public interface ITagRepository
+public interface ITagRepository : IBaseRepository<Tag>
 {
-    Task<Tag?> GetByIdAsync(int id);
-    Task<List<Tag>> GetAllAsync();
-    Task AddAsync(Tag tag);
 }

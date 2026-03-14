@@ -9,7 +9,7 @@ namespace app.Pages
         {
             if (!User.Identity?.IsAuthenticated == true)
             {
-                return RedirectToPage("/Login");
+                return RedirectToPage("/Auth/Login");
             }
 
             if (User.IsInRole("Admin"))

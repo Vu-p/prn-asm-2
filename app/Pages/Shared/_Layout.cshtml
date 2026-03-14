@@ -57,7 +57,7 @@
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             <li class="nav-item">
-                                <form method="post" asp-page="/Logout">
+                                <form method="post" asp-page="/Auth/Logout">
                                     <button class="btn btn-link nav-link text-dark" type="submit">Logout</button>
                                 </form>
                             </li>
@@ -65,10 +65,10 @@
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Login">Login</a>
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Auth/Login">Login</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Register">Register</a>
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Auth/Register">Register</a>
                             </li>
                         }
                     </ul>

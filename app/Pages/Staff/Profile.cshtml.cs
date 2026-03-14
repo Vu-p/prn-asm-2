@@ -26,9 +26,9 @@ public class ProfileModel : PageModel
     public async Task<IActionResult> OnGetAsync()
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        if (userIdClaim == null || !short.TryParse(userIdClaim, out short userId))
         {
-            return RedirectToPage("/Login");
+            return RedirectToPage("/Auth/Login");
         }
 
         var account = await _accountService.GetByIdAsync(userId);
@@ -49,9 +49,9 @@ public class ProfileModel : PageModel
         }
 
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null || !int.TryParse(userIdClaim, out int userId))
+        if (userIdClaim == null || !short.TryParse(userIdClaim, out short userId))
         {
-            return RedirectToPage("/Login");
+            return RedirectToPage("/Auth/Login");
         }
 
         var existingAccount = await _accountService.GetByIdAsync(userId);

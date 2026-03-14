@@ -5,28 +5,73 @@
 }
 
 <div class="container mt-4">
-    <h2 class="mb-4">Latest News Articles</h2>
-
-    <div class="row g-4" id="newsContainer">
-        @foreach (var article in Model.Articles)
-        {
-            <div class="col-md-6 col-lg-4 article-card" id="article-@article.NewsArticleId">
-                <div class="card h-100 shadow-sm border-0">
-                    <div class="card-body">
-                        <h5 class="card-title text-primary news-title">@article.NewsTitle</h5>
-                        <p class="card-text"><strong><span class="news-headline">@article.Headline</span></strong></p>
-                        <p class="card-text text-truncate news-content" style="max-height: 4.5em;">@article.NewsContent</p>
-                    </div>
-                    <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center">
-                        <small class="text-muted"><span class="news-date">@article.CreatedDate.ToShortDateString()</span> | <span class="news-category">@article.Category?.CategoryName</span></small>
-                        <a href="#" class="btn btn-sm btn-link p-0">Read More</a>
-                    </div>
+    <div class="row">
+        <!-- Sidebar: Category Filter -->
+        <div class="col-md-3 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header fw-bold bg-primary text-white">Categories</div>
+                <div class="list-group list-group-flush" id="categoryList">
+                    <a href="/News/Public" class="list-group-item list-group-item-action @(Model.SelectedCategoryId == null ? "active" : "")">All Articles</a>
+                    @foreach (var cat in Model.Categories.Where(c => c.ParentCategoryId == null && c.IsActive))
+                    {
+                        <a href="/News/Public?categoryId=@cat.CategoryId"
+                           class="list-group-item list-group-item-action fw-semibold @(Model.SelectedCategoryId == cat.CategoryId ? "active" : "")">
+                            @cat.CategoryName
+                        </a>
+                        @foreach (var sub in Model.Categories.Where(c => c.ParentCategoryId == cat.CategoryId && c.IsActive))
+                        {
+                            <a href="/News/Public?categoryId=@sub.CategoryId"
+                               class="list-group-item list-group-item-action ps-4 text-secondary @(Model.SelectedCategoryId == sub.CategoryId ? "active" : "")">
+                                ↳ @sub.CategoryName
+                            </a>
+                        }
+                    }
                 </div>
             </div>
-        }
-    </div>
-    <div id="noNewsMessage" class="col-12 text-center py-5 @(Model.Articles.Any() ? "d-none" : "")">
-        <p class="text-muted">No active news articles found.</p>
+        </div>
+
+        <!-- Main: News Articles -->
+        <div class="col-md-9">
+            <h2 class="mb-4">Latest News Articles</h2>
+            <div class="row g-4" id="newsContainer">
+                @foreach (var article in Model.Articles)
+                {
+                    <div class="col-md-6 article-card" id="article-@article.NewsArticleId">
+                        <div class="card h-100 shadow-sm border-0">
+                            @if (!string.IsNullOrWhiteSpace(article.ThumbnailUrl))
+                            {
+                                <img src="@article.ThumbnailUrl" class="card-img-top" alt="@article.NewsTitle" style="height:180px;object-fit:cover;" />
+                            }
+                            <div class="card-body">
+                                <h5 class="card-title text-primary news-title">@article.NewsTitle</h5>
+                                <p class="card-text"><strong><span class="news-headline">@article.Headline</span></strong></p>
+                            </div>
+                            <div class="card-footer bg-transparent border-top-0">
+                                @if (article.NewsTags.Any())
+                                {
+                                    <div class="mb-2">
+                                        @foreach (var nt in article.NewsTags.Where(t => t.Tag != null))
+                                        {
+                                            <span class="badge bg-secondary me-1">#@nt.Tag!.TagName</span>
+                                        }
+                                    </div>
+                                }
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">
+                                        <span class="news-date">@article.CreatedDate.ToShortDateString()</span>
+                                        | <span class="news-category">@article.Category?.CategoryName</span>
+                                    </small>
+                                    <a href="/News/Detail/@article.NewsArticleId" class="btn btn-sm btn-outline-primary">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <div id="noNewsMessage" class="col-12 text-center py-5 @(Model.Articles.Any() ? "d-none" : "")">
+                <p class="text-muted">No active news articles found.</p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -39,23 +84,26 @@
 @section Scripts {
     <script src="~/lib/signalr/signalr.min.js"></script>
     <script>
+        const currentSelectedCategoryId = @(Model.SelectedCategoryId?.ToString() ?? "null");
+
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/hubs/news")
             .build();
 
         function createCardHtml(article) {
             const date = new Date(article.createdDate).toLocaleDateString();
+            const thumb = article.thumbnailUrl ? `<img src="${article.thumbnailUrl}" class="card-img-top" alt="${article.newsTitle}" style="height:180px;object-fit:cover;">` : '';
             return `
-                <div class="col-md-6 col-lg-4 article-card new-article" id="article-${article.newsArticleId}">
+                <div class="col-md-6 article-card new-article" id="article-${article.newsArticleId}">
                     <div class="card h-100 shadow-sm border-0">
+                        ${thumb}
                         <div class="card-body">
                             <h5 class="card-title text-primary news-title">${article.newsTitle}</h5>
                             <p class="card-text"><strong><span class="news-headline">${article.headline}</span></strong></p>
-                            <p class="card-text text-truncate news-content" style="max-height: 4.5em;">${article.newsContent}</p>
                         </div>
                         <div class="card-footer bg-transparent border-top-0 d-flex justify-content-between align-items-center">
                             <small class="text-muted"><span class="news-date">${date}</span> | <span class="news-category">${article.categoryName || ''}</span></small>
-                            <a href="#" class="btn btn-sm btn-link p-0">Read More</a>
+                            <a href="/News/Detail/${article.newsArticleId}" class="btn btn-sm btn-outline-primary">Read More</a>
                         </div>
                     </div>
                 </div>`;
@@ -65,7 +113,6 @@
             const date = new Date(article.createdDate).toLocaleDateString();
             card.querySelector('.news-title').innerText = article.newsTitle;
             card.querySelector('.news-headline').innerText = article.headline;
-            card.querySelector('.news-content').innerText = article.newsContent;
             card.querySelector('.news-date').innerText = date;
             card.querySelector('.news-category').innerText = article.categoryName || '';
         }
@@ -81,7 +128,7 @@
         }
 
         connection.on("ArticleCreated", function (article) {
-            if (article.newsStatus === 1) { // Only show active
+            if (article.newsStatus === 1 && (currentSelectedCategoryId === null || article.categoryId === currentSelectedCategoryId)) {
                 const container = document.getElementById('newsContainer');
                 container.insertAdjacentHTML('afterbegin', createCardHtml(article));
                 checkEmpty();
@@ -90,7 +137,7 @@
 
         connection.on("ArticleUpdated", function (article) {
             const card = document.getElementById(`article-${article.newsArticleId}`);
-            if (article.newsStatus === 1) {
+            if (article.newsStatus === 1 && (currentSelectedCategoryId === null || article.categoryId === currentSelectedCategoryId)) {
                 if (card) {
                     updateCard(card, article);
                 } else {

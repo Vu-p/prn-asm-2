@@ -24,7 +24,7 @@ public class MyNewsModel : PageModel
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (userIdClaim == null || !short.TryParse(userIdClaim, out short userId))
         {
-            return RedirectToPage("/Login");
+            return RedirectToPage("/Auth/Login");
         }
 
         Articles = await _newsService.GetHistoryByStaffAsync(userId);
