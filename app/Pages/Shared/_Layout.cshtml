@@ -5,70 +5,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - app</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/app.styles.css" asp-append-version="true" />
 </head>
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-lg navbar-light app-navbar border-bottom box-shadow mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index">FUNewsManagement</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                <button class="navbar-toggler app-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+                    <i class="bi bi-list"></i>
                 </button>
+
+                <a class="navbar-brand app-brand" asp-area="" asp-page="/Index">
+                    <i class="bi bi-newspaper"></i>
+                    <span>FU News Management</span>
+                </a>
+
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                    <ul class="navbar-nav app-nav-links flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/News/Public">News</a>
+                            <a class="nav-link text-dark" asp-area="" asp-page="/Index"><i class="bi bi-house-door"></i>Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" asp-area="" asp-page="/News/Public"><i class="bi bi-file-earmark-text"></i>News</a>
                         </li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
                             if (User.IsInRole("Admin"))
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-page="/Admin/Accounts/Index">Accounts</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-page="/Admin/Report">Report</a>
+                                <li class="nav-item dropdown nav-menu-group">
+                                    <a class="nav-link dropdown-toggle text-dark nav-group-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-people"></i>Administration
+                                    </a>
+                                    <ul class="dropdown-menu nav-submenu">
+                                        <li><h6 class="dropdown-header">System Management</h6></li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-page="/Admin/Accounts/Index"><i class="bi bi-person-lines-fill"></i>Accounts</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-page="/Admin/Report"><i class="bi bi-graph-up-arrow"></i>Report</a>
+                                        </li>
+                                    </ul>
                                 </li>
                             }
                             if (User.IsInRole("Staff") || User.IsInRole("Admin"))
                             {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-page="/Staff/Categories/Index">Categories</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-page="/Staff/News/Index">News</a>
-                                </li>
-                            }
-                            if (User.IsInRole("Staff"))
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-page="/Staff/Profile">Profile</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-page="/Staff/MyNews">My News</a>
+                                <li class="nav-item dropdown nav-menu-group">
+                                    <a class="nav-link dropdown-toggle text-dark nav-group-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="bi bi-folder2-open"></i>Staff Workspace
+                                    </a>
+                                    <ul class="dropdown-menu nav-submenu">
+                                        <li><h6 class="dropdown-header">Content Management</h6></li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-page="/Staff/Categories/Index"><i class="bi bi-folder"></i>Categories</a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" asp-area="" asp-page="/Staff/News/Index"><i class="bi bi-journal-text"></i>News</a>
+                                        </li>
+                                        @if (User.IsInRole("Staff"))
+                                        {
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><h6 class="dropdown-header">Personal</h6></li>
+                                            <li>
+                                                <a class="dropdown-item" asp-area="" asp-page="/Staff/Profile"><i class="bi bi-person-circle"></i>Profile</a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item" asp-area="" asp-page="/Staff/MyNews"><i class="bi bi-file-earmark-check"></i>My News</a>
+                                            </li>
+                                        }
+                                    </ul>
                                 </li>
                             }
                         }
                     </ul>
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav app-nav-links app-nav-right">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
+                            <li class="nav-item app-user-pill-wrap">
+                                <span class="app-user-pill">
+                                    <i class="bi bi-person-circle"></i>
+                                    @(User.Identity?.Name ?? "User")
+                                </span>
+                            </li>
                             <li class="nav-item">
                                 <form method="post" asp-page="/Auth/Logout">
-                                    <button class="btn btn-link nav-link text-dark" type="submit">Logout</button>
+                                    <button class="btn btn-link nav-link text-dark" type="submit"><i class="bi bi-box-arrow-right"></i>Logout</button>
                                 </form>
                             </li>
                         }
                         else
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Auth/Login">Login</a>
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Auth/Login"><i class="bi bi-box-arrow-in-right"></i>Login</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Auth/Register">Register</a>
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Auth/Register"><i class="bi bi-person-plus"></i>Register</a>
                             </li>
                         }
                     </ul>

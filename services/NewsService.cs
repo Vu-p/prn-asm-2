@@ -83,9 +83,8 @@ public class NewsService : INewsService
     public async Task<List<NewsArticle>> GetRelatedNewsAsync(string articleId, int count)
     {
         var article = await _repo.GetByIdWithDetailsAsync(articleId);
-        if (article == null || !article.NewsTags.Any()) return new List<NewsArticle>();
+        if (article == null) return new List<NewsArticle>();
 
-        var tagIds = article.NewsTags.Select(nt => nt.TagId).ToList();
-        return await _repo.GetRelatedNewsAsync(articleId, tagIds, count);
+        return await _repo.GetRelatedNewsAsync(articleId, article.CategoryId, count);
     }
 }

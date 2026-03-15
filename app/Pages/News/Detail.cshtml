@@ -6,42 +6,11 @@
 }
 
 <div class="container my-5">
-<div class="row">
-    <!-- Sidebar: Category Tree -->
-    <div class="col-md-3 mb-4">
-        <div class="card border-0 shadow-sm sticky-top" style="top: 20px;">
-            <div class="card-header fw-bold bg-primary text-white">Categories</div>
-            <div class="list-group list-group-flush">
-                <a href="/News/Public" class="list-group-item list-group-item-action">All Articles</a>
-                @foreach (var parent in Model.AllCategories.Where(c => c.ParentCategoryId == null && c.IsActive))
-                {
-                    <a href="/News/Public?categoryId=@parent.CategoryId" 
-                       class="list-group-item list-group-item-action fw-semibold @(Model.CategoryHierarchy.Any(h => h.CategoryId == parent.CategoryId) ? "bg-light text-primary" : "")">
-                        @parent.CategoryName
-                    </a>
-                    @foreach (var sub in Model.AllCategories.Where(c => c.ParentCategoryId == parent.CategoryId && c.IsActive))
-                    {
-                        <a href="/News/Public?categoryId=@sub.CategoryId" 
-                           class="list-group-item list-group-item-action ps-4 text-secondary @(Model.CategoryHierarchy.Any(h => h.CategoryId == sub.CategoryId) ? "bg-light text-primary" : "")">
-                            ↳ @sub.CategoryName
-                        </a>
-                        @foreach (var lastChild in Model.AllCategories.Where(c => c.ParentCategoryId == sub.CategoryId && c.IsActive))
-                        {
-                            <a href="/News/Public?categoryId=@lastChild.CategoryId" 
-                               class="list-group-item list-group-item-action ps-5 text-muted small @(Model.CategoryHierarchy.Any(h => h.CategoryId == lastChild.CategoryId) ? "bg-light text-primary" : "")">
-                                ↳ @lastChild.CategoryName
-                            </a>
-                        }
-                    }
-                }
-            </div>
-        </div>
-    </div>
-
-    <!-- Main Content -->
-    <div class="col-md-9">
+<div class="row g-4">
+    <div class="col-lg-8">
         <nav aria-label="breadcrumb" class="mb-4">
             <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
                 <li class="breadcrumb-item"><a href="/News/Public">News</a></li>
                 @foreach (var h in Model.CategoryHierarchy)
                 {
@@ -59,6 +28,9 @@
 
         <article>
             <header class="mb-4">
+                <div class="mb-3">
+                    <span class="badge rounded-pill bg-primary-subtle text-dark border">@(article.Category?.CategoryName ?? "Uncategorized")</span>
+                </div>
                 <h1 class="display-5 fw-bold">@article.NewsTitle</h1>
                 <p class="lead text-muted">@article.Headline</p>
                 <div class="d-flex gap-3 text-muted small mb-3">
@@ -98,41 +70,85 @@
             }
         </article>
 
-        <!-- Related News Section -->
-        @if (Model.RelatedNews.Any())
-        {
-            <div class="mt-5 pt-5 border-top">
-                <h3 class="mb-4">Related News</h3>
-                <div class="row g-4">
-                    @foreach (var related in Model.RelatedNews)
-                    {
-                        <div class="col-md-6">
-                            <div class="card h-100 border-0 shadow-sm">
-                                @if (!string.IsNullOrWhiteSpace(related.ThumbnailUrl))
-                                {
-                                    <img src="@related.ThumbnailUrl" class="card-img-top" alt="@related.NewsTitle" style="height:150px; object-fit:cover;" />
-                                }
-                                <div class="card-body">
-                                    <h6 class="card-title text-primary"><a href="/News/Detail/@related.NewsArticleId" class="text-decoration-none">@related.NewsTitle</a></h6>
-                                    <p class="card-text small text-muted">@related.Headline</p>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-
         <div class="mt-5">
             <a href="/News/Public" class="btn btn-outline-primary">
                 <i class="bi bi-arrow-left"></i> Back to News
             </a>
         </div>
     </div>
+
+    <aside class="col-lg-4">
+        <div class="position-sticky" style="top: 20px;">
+            <section class="card border-0 shadow-sm mb-4">
+                <div class="card-header fw-semibold fs-4 related-header text-white">Related News</div>
+                <div class="list-group list-group-flush related-list">
+                    @if (Model.RelatedNews.Any())
+                    {
+                        @foreach (var related in Model.RelatedNews)
+                        {
+                            <a href="/News/Detail/@related.NewsArticleId" class="list-group-item list-group-item-action border-0 py-3">
+                                <div class="fw-semibold lh-sm related-title">@related.NewsTitle</div>
+                                <div class="small text-secondary mt-2">@related.CreatedDate.ToString("dd/MM/yyyy")</div>
+                            </a>
+                        }
+                    }
+                    else
+                    {
+                        <div class="list-group-item border-0 py-3 text-muted small">No related articles in this category yet.</div>
+                    }
+                </div>
+            </section>
+
+            <section class="card border-0 shadow-sm">
+                <div class="card-header fw-semibold fs-4 category-header">Categories</div>
+                <div class="list-group list-group-flush">
+                    @foreach (var category in Model.AllCategories.Where(c => c.IsActive && c.ParentCategoryId == null))
+                    {
+                        <a href="/News/Public?categoryId=@category.CategoryId" class="list-group-item list-group-item-action border-0 py-3 @(Model.CategoryHierarchy.Any(h => h.CategoryId == category.CategoryId) ? "active" : "")">
+                            <div class="fw-semibold">@category.CategoryName</div>
+                            <small class="text-muted">News from @category.CategoryName</small>
+                        </a>
+                    }
+                </div>
+            </section>
+        </div>
+    </aside>
 </div>
 </div>
 
 <style>
+    .related-header {
+        background-color: #2f3a5d;
+    }
+
+    .category-header {
+        background-color: #dee5ef;
+        color: #1f3556;
+    }
+
+    .related-list .list-group-item:not(:last-child) {
+        border-bottom: 1px solid #eceff3 !important;
+    }
+
+    .related-list .list-group-item:hover .related-title {
+        color: #0d47a1;
+    }
+
+    .related-title {
+        color: #263a5a;
+        transition: color 0.2s ease;
+    }
+
+    .list-group-item.active {
+        background-color: #eef4ff;
+        color: #0b4da2;
+        border-left: 3px solid #0b61d8 !important;
+    }
+
+    .list-group-item.active .text-muted {
+        color: #6d7f98 !important;
+    }
+
     .article-content img { max-width: 100%; height: auto; border-radius: 8px; }
     .article-content p { line-height: 1.8; font-size: 1.05rem; }
     .article-content h2, .article-content h3 { margin-top: 1.5rem; }
