@@ -1,123 +1,229 @@
+@using models
+@inject services.ICategoryService CategoryService
+@{
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var isAdmin = User.IsInRole(AccountRole.Admin.ToString());
+    var isStaff = User.IsInRole(AccountRole.Staff.ToString());
+    var userName = User.Identity?.Name ?? "User";
+    var roleName = isAdmin ? "Admin" : isStaff ? "Staff" : "Lecturer";
+    var categories = await CategoryService.GetAllAsync(null);
+    var rootCategories = categories.Where(c => c.IsActive && c.ParentCategoryId == null).ToList();
+}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - app</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <title>@ViewData["Title"] - FU News Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/app.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-lg navbar-light app-navbar border-bottom box-shadow mb-3">
-            <div class="container">
-                <button class="navbar-toggler app-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <i class="bi bi-list"></i>
-                </button>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top">
+        <div class="container-fluid">
+            <button class="btn btn-link text-white me-3 sidebar-toggle" id="sidebarToggle" type="button">
+                <i class="bi bi-list fs-4"></i>
+            </button>
 
-                <a class="navbar-brand app-brand" asp-area="" asp-page="/Index">
-                    <i class="bi bi-newspaper"></i>
-                    <span>FU News Management</span>
-                </a>
+            <a class="navbar-brand d-flex align-items-center" asp-page="/Index">
+                <i class="bi bi-newspaper me-2 fs-4 brand-icon"></i>
+                <span class="fw-bold">FU News Management</span>
+            </a>
 
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav app-nav-links flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/Index"><i class="bi bi-house-door"></i>Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-page="/News/Public"><i class="bi bi-file-earmark-text"></i>News</a>
-                        </li>
-                        @if (User.Identity?.IsAuthenticated == true)
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNavbar" aria-controls="topNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="topNavbar">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-page="/Index"><i class="bi bi-house-door me-1"></i>Trang chủ</a>
+                    </li>
+
+                    @if (isAuthenticated)
+                    {
+                        @if (isAdmin)
                         {
-                            if (User.IsInRole("Admin"))
-                            {
-                                <li class="nav-item dropdown nav-menu-group">
-                                    <a class="nav-link dropdown-toggle text-dark nav-group-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-people"></i>Administration
-                                    </a>
-                                    <ul class="dropdown-menu nav-submenu">
-                                        <li><h6 class="dropdown-header">System Management</h6></li>
-                                        <li>
-                                            <a class="dropdown-item" asp-area="" asp-page="/Admin/Accounts/Index"><i class="bi bi-person-lines-fill"></i>Accounts</a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" asp-area="" asp-page="/Admin/Report"><i class="bi bi-graph-up-arrow"></i>Report</a>
-                                        </li>
-                                    </ul>
-                                </li>
-                            }
-                            if (User.IsInRole("Staff") || User.IsInRole("Admin"))
-                            {
-                                <li class="nav-item dropdown nav-menu-group">
-                                    <a class="nav-link dropdown-toggle text-dark nav-group-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                        <i class="bi bi-folder2-open"></i>Staff Workspace
-                                    </a>
-                                    <ul class="dropdown-menu nav-submenu">
-                                        <li><h6 class="dropdown-header">Content Management</h6></li>
-                                        <li>
-                                            <a class="dropdown-item" asp-area="" asp-page="/Staff/Categories/Index"><i class="bi bi-folder"></i>Categories</a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item" asp-area="" asp-page="/Staff/News/Index"><i class="bi bi-journal-text"></i>News</a>
-                                        </li>
-                                        @if (User.IsInRole("Staff"))
+                            <li class="nav-item">
+                                <a class="nav-link" asp-page="/Admin/Accounts/Index"><i class="bi bi-people me-1"></i>Tài khoản</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-page="/Admin/Report"><i class="bi bi-graph-up me-1"></i>Báo cáo</a>
+                            </li>
+                        }
+
+                        @if (isStaff || isAdmin)
+                        {
+                            <li class="nav-item dropdown category-dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-folder me-1"></i>Chuyên mục
+                                </a>
+                                <ul class="dropdown-menu category-menu">
+                                    @foreach (var category in rootCategories)
+                                    {
+                                        var subCategories = categories.Where(c => c.IsActive && c.ParentCategoryId == category.CategoryId).ToList();
+                                        if (subCategories.Any())
                                         {
-                                            <li><hr class="dropdown-divider"></li>
-                                            <li><h6 class="dropdown-header">Personal</h6></li>
-                                            <li>
-                                                <a class="dropdown-item" asp-area="" asp-page="/Staff/Profile"><i class="bi bi-person-circle"></i>Profile</a>
-                                            </li>
-                                            <li>
-                                                <a class="dropdown-item" asp-area="" asp-page="/Staff/MyNews"><i class="bi bi-file-earmark-check"></i>My News</a>
+                                            <li class="dropdown-submenu">
+                                                <a class="dropdown-item" href="/News/Public?categoryId=@category.CategoryId">
+                                                    @category.CategoryName
+                                                    <i class="bi bi-chevron-right submenu-arrow"></i>
+                                                </a>
+                                                <ul class="dropdown-menu">
+                                                    @foreach (var sub in subCategories)
+                                                    {
+                                                        var grandChildren = categories.Where(c => c.IsActive && c.ParentCategoryId == sub.CategoryId).ToList();
+                                                        if (grandChildren.Any())
+                                                        {
+                                                            <li class="dropdown-submenu">
+                                                                <a class="dropdown-item" href="/News/Public?categoryId=@sub.CategoryId">
+                                                                    @sub.CategoryName
+                                                                    <i class="bi bi-chevron-right submenu-arrow"></i>
+                                                                </a>
+                                                                <ul class="dropdown-menu">
+                                                                    @foreach (var grandChild in grandChildren)
+                                                                    {
+                                                                        <li>
+                                                                            <a class="dropdown-item" href="/News/Public?categoryId=@grandChild.CategoryId">@grandChild.CategoryName</a>
+                                                                        </li>
+                                                                    }
+                                                                </ul>
+                                                            </li>
+                                                        }
+                                                        else
+                                                        {
+                                                            <li>
+                                                                <a class="dropdown-item" href="/News/Public?categoryId=@sub.CategoryId">@sub.CategoryName</a>
+                                                            </li>
+                                                        }
+                                                    }
+                                                </ul>
                                             </li>
                                         }
-                                    </ul>
-                                </li>
-                            }
+                                        else
+                                        {
+                                            <li>
+                                                <a class="dropdown-item" href="/News/Public?categoryId=@category.CategoryId">@category.CategoryName</a>
+                                            </li>
+                                        }
+                                    }
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" asp-page="/Staff/Categories/Index"><i class="bi bi-gear me-1"></i>Quản lý Chuyên mục</a>
+                                    </li>
+                                </ul>
+                            </li>
                         }
-                    </ul>
-                    <ul class="navbar-nav app-nav-links app-nav-right">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <li class="nav-item app-user-pill-wrap">
-                                <span class="app-user-pill">
-                                    <i class="bi bi-person-circle"></i>
-                                    @(User.Identity?.Name ?? "User")
+
+                        <li class="nav-item">
+                            <a class="nav-link" asp-page="/Staff/MyNews"><i class="bi bi-file-text me-1"></i>Bài viết của tôi</a>
+                        </li>
+                    }
+                </ul>
+
+                <div class="d-flex align-items-center nav-right-actions">
+                    @if (isAuthenticated)
+                    {
+                        <form method="get" asp-page="/News/Public" class="me-3 d-none d-md-block">
+                            <div class="input-group input-group-sm">
+                                <input type="search" name="searchTerm" class="form-control" placeholder="Tìm kiếm..." style="width: 220px;">
+                                <button class="btn btn-outline-light" type="submit"><i class="bi bi-search"></i></button>
+                            </div>
+                        </form>
+
+                        <a asp-page="/News/Public" class="text-white me-3" title="Tìm kiếm nâng cao">
+                            <i class="bi bi-funnel fs-5"></i>
+                        </a>
+
+                        <div class="dropdown">
+                            <button class="btn btn-link text-white text-decoration-none dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle fs-4 me-2"></i>
+                                <span class="d-none d-md-inline">
+                                    @userName
+                                    <span class="badge badge-role ms-1">@roleName</span>
                                 </span>
-                            </li>
-                            <li class="nav-item">
-                                <form method="post" asp-page="/Auth/Logout">
-                                    <button class="btn btn-link nav-link text-dark" type="submit"><i class="bi bi-box-arrow-right"></i>Logout</button>
-                                </form>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Auth/Login"><i class="bi bi-box-arrow-in-right"></i>Login</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link text-dark" asp-area="" asp-page="/Auth/Register"><i class="bi bi-person-plus"></i>Register</a>
-                            </li>
-                        }
-                    </ul>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li class="px-3 py-2 border-bottom">
+                                    <div class="fw-bold text-dark">@userName</div>
+                                    <small class="text-muted">@roleName</small>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" asp-page="/Staff/MyNews"><i class="bi bi-file-text me-2"></i>Bài viết của tôi</a>
+                                </li>
+                                @if (isStaff)
+                                {
+                                    <li>
+                                        <a class="dropdown-item" asp-page="/Staff/Profile"><i class="bi bi-person me-2"></i>Hồ sơ</a>
+                                    </li>
+                                }
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <form method="post" asp-page="/Auth/Logout">
+                                        <button class="dropdown-item text-danger" type="submit"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <a asp-page="/Auth/Login" class="btn btn-sm btn-accent-login">
+                            <i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập
+                        </a>
+                    }
                 </div>
             </div>
+        </div>
+    </nav>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <aside class="sidebar" id="sidebar">
+        <nav class="py-3">
+            <a asp-page="/Index" class="nav-link"><i class="bi bi-house-door me-2"></i>Trang chủ</a>
+
+            @if (isAuthenticated)
+            {
+                @if (isAdmin)
+                {
+                    <div class="sidebar-section-title">Quản trị</div>
+                    <a asp-page="/Admin/Accounts/Index" class="nav-link"><i class="bi bi-people me-2"></i>Quản lý Tài khoản</a>
+                    <a asp-page="/Admin/Report" class="nav-link"><i class="bi bi-graph-up me-2"></i>Báo cáo</a>
+                }
+
+                @if (isStaff || isAdmin)
+                {
+                    <div class="sidebar-section-title">Nội dung</div>
+                    <a asp-page="/Staff/Categories/Index" class="nav-link"><i class="bi bi-folder me-2"></i>Quản lý Chuyên mục</a>
+                    <a asp-page="/Staff/News/Index" class="nav-link"><i class="bi bi-journal-text me-2"></i>Quản lý Bài viết</a>
+                }
+
+                @if (isStaff)
+                {
+                    <div class="sidebar-section-title">Cá nhân</div>
+                    <a asp-page="/Staff/Profile" class="nav-link"><i class="bi bi-person me-2"></i>Hồ sơ</a>
+                    <a asp-page="/Staff/MyNews" class="nav-link"><i class="bi bi-file-text me-2"></i>Bài viết của tôi</a>
+                }
+            }
         </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
+    </aside>
+
+    <div class="content-wrapper" id="contentWrapper">
+        <main class="container-fluid py-4">
             @RenderBody()
         </main>
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - FUNewsManagement
+    <footer class="app-footer">
+        <div class="container text-center">
+            <p class="mb-2 text-muted">&copy; 2026 FU News Management System. All rights reserved.</p>
+            <a asp-page="/Privacy" class="text-decoration-none footer-link">Privacy Policy</a>
         </div>
     </footer>
 
@@ -125,6 +231,32 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/lib/signalr/signalr.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const contentWrapper = document.getElementById('contentWrapper');
+
+            function toggleSidebar() {
+                sidebar.classList.toggle('show');
+                sidebarOverlay.classList.toggle('show');
+                if (window.innerWidth >= 768) {
+                    contentWrapper.classList.toggle('sidebar-open');
+                }
+            }
+
+            sidebarToggle.addEventListener('click', toggleSidebar);
+            sidebarOverlay.addEventListener('click', toggleSidebar);
+
+            window.addEventListener('resize', function () {
+                if (window.innerWidth < 768 && sidebar.classList.contains('show')) {
+                    sidebar.classList.remove('show');
+                    sidebarOverlay.classList.remove('show');
+                }
+            });
+        });
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

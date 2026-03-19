@@ -1,52 +1,120 @@
 @page
 @model app.Pages.Admin.Accounts.IndexModel
 @{
-    ViewData["Title"] = "Account Management";
+    ViewData["Title"] = "Quản lý tài khoản";
+    var totalCount = Model.Accounts.Count;
+    var staffCount = Model.Accounts.Count(a => a.AccountRole == 1);
+    var lecturerCount = Model.Accounts.Count(a => a.AccountRole == 2);
+    var adminCount = Model.Accounts.Count(a => a.AccountRole == 0);
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Account Management</h2>
-        <button type="button" class="btn btn-primary" onclick="openCreateModal()">Create New Account</button>
-    </div>
+<div class="container-fluid">
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb mb-0 small">
+            <li class="breadcrumb-item"><a asp-page="/Index">Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Quản lý tài khoản</li>
+        </ol>
+    </nav>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row row-cols-lg-auto g-3 align-items-center">
-                <div class="col-12">
-                    <input type="text" name="searchTerm" class="form-control" placeholder="Search by name or email..." value="@Model.SearchTerm">
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-lg mb-4" style="background-color: var(--primary-color); border-radius: 1rem;">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-lg-8 text-white">
+                    <h2 class="fw-bold mb-2"><i class="bi bi-people-fill me-2"></i>Quản lý Tài khoản</h2>
+                    <p class="mb-0" style="color: var(--secondary-color);">Quản lý người dùng và phân quyền trong hệ thống</p>
                 </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-secondary">Search</button>
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                    <button type="button" class="btn btn-lg shadow" style="background-color: var(--accent-color); color: var(--primary-color); font-weight: 600;" onclick="openCreateModal()">
+                        <i class="bi bi-plus-circle me-2"></i>Tạo tài khoản mới
+                    </button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-lg-6">
+                    <label class="form-label fw-semibold text-muted small mb-2">LỌC THEO VAI TRÒ</label>
+                    <div class="btn-group w-100 role-filter-group" role="group" aria-label="Role filters">
+                        <button type="button" class="btn btn-outline-primary role-filter active" data-role="all"><i class="bi bi-people me-1"></i>Tất cả (@totalCount)</button>
+                        <button type="button" class="btn btn-outline-primary role-filter" data-role="1"><i class="bi bi-person-badge me-1"></i>Staff (@staffCount)</button>
+                        <button type="button" class="btn btn-outline-primary role-filter" data-role="2"><i class="bi bi-person me-1"></i>Lecturer (@lecturerCount)</button>
+                        <button type="button" class="btn btn-outline-primary role-filter" data-role="0"><i class="bi bi-shield-check me-1"></i>Admin (@adminCount)</button>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <label class="form-label fw-semibold text-muted small mb-2">TÌM KIẾM</label>
+                    <form method="get" class="input-group input-group-lg">
+                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput" name="searchTerm" class="form-control border-start-0" placeholder="Nhập tên hoặc email..." value="@Model.SearchTerm">
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle mb-0" id="accountTable">
+                    <thead style="background-color: #f5f7fb; color: #111;">
                         <tr>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Actions</th>
+                            <th class="px-4 py-3" style="width: 4.5rem;">ID</th>
+                            <th class="py-3">Tên tài khoản</th>
+                            <th class="py-3">Email</th>
+                            <th class="py-3">Vai trò</th>
+                            <th class="py-3 text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var account in Model.Accounts)
                         {
-                            <tr>
-                                <td>@account.AccountName</td>
-                                <td>@account.AccountEmail</td>
-                                <td>@(account.AccountRole == 0 ? "Admin" : (account.AccountRole == 1 ? "Staff" : "Lecturer"))</td>
+                            <tr class="account-row" data-role="@account.AccountRole">
+                                <td class="px-4 fw-semibold">@account.AccountId</td>
+                                <td class="account-name"><strong>@account.AccountName</strong></td>
+                                <td class="account-email">@account.AccountEmail</td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="openEditModal(@account.AccountId, '@account.AccountName', '@account.AccountEmail', '@account.AccountPassword', @account.AccountRole)">Edit</button>
-                                    <form method="post" asp-page-handler="Delete" asp-route-id="@account.AccountId" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this account?')">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                                    </form>
+                                    @if (account.AccountRole == 0)
+                                    {
+                                        <span class="badge bg-danger"><i class="bi bi-shield-check me-1"></i>Admin</span>
+                                    }
+                                    else if (account.AccountRole == 1)
+                                    {
+                                        <span class="badge bg-secondary"><i class="bi bi-person-badge me-1"></i>Staff</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge" style="background-color: #30364f;"><i class="bi bi-person me-1"></i>Lecturer</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="action-group d-inline-flex" role="group" aria-label="Account actions">
+                                        <button
+                                            type="button"
+                                            class="btn btn-sm btn-outline-primary action-btn"
+                                            data-id="@account.AccountId"
+                                            data-name="@account.AccountName"
+                                            data-email="@account.AccountEmail"
+                                            data-password="@account.AccountPassword"
+                                            data-role="@account.AccountRole"
+                                            onclick="openEditModal(this)">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <form method="post" asp-page-handler="Delete" asp-route-id="@account.AccountId" onsubmit="return confirm('Are you sure you want to delete this account?')" class="d-inline-block">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger action-btn"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -63,13 +131,13 @@
         <div class="modal-content">
             <form method="post" asp-page-handler="Upsert">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="accountModalLabel">Account</h5>
+                    <h5 class="modal-title" id="accountModalLabel">Tai khoan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" asp-for="UpsertAccount.AccountId" id="modalAccountId" />
                     <div class="mb-3">
-                        <label asp-for="UpsertAccount.AccountName" class="form-label">Full Name</label>
+                        <label asp-for="UpsertAccount.AccountName" class="form-label">Tên</label>
                         <input asp-for="UpsertAccount.AccountName" class="form-control" id="modalAccountName" required />
                     </div>
                     <div class="mb-3">
@@ -81,16 +149,17 @@
                         <input asp-for="UpsertAccount.AccountPassword" class="form-control" id="modalAccountPassword" type="password" required />
                     </div>
                     <div class="mb-3">
-                        <label asp-for="UpsertAccount.AccountRole" class="form-label">Role</label>
+                        <label asp-for="UpsertAccount.AccountRole" class="form-label">Vai trò</label>
                         <select asp-for="UpsertAccount.AccountRole" class="form-select" id="modalAccountRole" required>
+                            <option value="0">Admin</option>
                             <option value="1">Staff</option>
                             <option value="2">Lecturer</option>
                         </select>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                 </div>
             </form>
         </div>
@@ -100,24 +169,105 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        const searchInput = document.getElementById('searchInput');
+        const roleFilters = document.querySelectorAll('.role-filter');
+        let activeRole = 'all';
+
+        function applyAccountFilters() {
+            const term = (searchInput?.value || '').toLowerCase();
+            document.querySelectorAll('#accountTable .account-row').forEach(row => {
+                const name = row.querySelector('.account-name')?.textContent.toLowerCase() || '';
+                const email = row.querySelector('.account-email')?.textContent.toLowerCase() || '';
+                const role = row.getAttribute('data-role');
+
+                const matchesText = name.includes(term) || email.includes(term);
+                const matchesRole = activeRole === 'all' || activeRole === role;
+
+                row.style.display = (matchesText && matchesRole) ? '' : 'none';
+            });
+        }
+
+        searchInput?.addEventListener('input', applyAccountFilters);
+
+        roleFilters.forEach(button => {
+            button.addEventListener('click', function () {
+                roleFilters.forEach(item => item.classList.remove('active'));
+                this.classList.add('active');
+                activeRole = this.getAttribute('data-role') || 'all';
+                applyAccountFilters();
+            });
+        });
+
         function openCreateModal() {
             document.getElementById('modalAccountId').value = '0';
             document.getElementById('modalAccountName').value = '';
             document.getElementById('modalAccountEmail').value = '';
             document.getElementById('modalAccountPassword').value = '';
             document.getElementById('modalAccountRole').value = '1';
-            document.getElementById('accountModalLabel').innerText = 'Create Account';
+            document.getElementById('accountModalLabel').innerText = 'Tạo tài khoản';
             new bootstrap.Modal(document.getElementById('accountModal')).show();
         }
 
-        function openEditModal(id, name, email, password, role) {
-            document.getElementById('modalAccountId').value = id;
-            document.getElementById('modalAccountName').value = name;
-            document.getElementById('modalAccountEmail').value = email;
-            document.getElementById('modalAccountPassword').value = password;
-            document.getElementById('modalAccountRole').value = role;
-            document.getElementById('accountModalLabel').innerText = 'Edit Account';
+        function openEditModal(button) {
+            document.getElementById('modalAccountId').value = button.dataset.id;
+            document.getElementById('modalAccountName').value = button.dataset.name;
+            document.getElementById('modalAccountEmail').value = button.dataset.email;
+            document.getElementById('modalAccountPassword').value = button.dataset.password;
+            document.getElementById('modalAccountRole').value = button.dataset.role;
+            document.getElementById('accountModalLabel').innerText = 'Chỉnh sửa tài khoản';
             new bootstrap.Modal(document.getElementById('accountModal')).show();
         }
     </script>
 }
+
+<style>
+    #accountTable tbody td {
+        padding-top: 0.85rem;
+        padding-bottom: 0.85rem;
+    }
+
+    #accountTable .btn-sm {
+        width: 2rem;
+        height: 2rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .role-filter-group .btn {
+        border-color: #2e3857;
+        color: #2e3857;
+    }
+
+    .role-filter-group .btn.active,
+    .role-filter-group .btn:hover {
+        background-color: #2e3857;
+        color: #fff;
+    }
+
+    .action-group .action-btn {
+        min-width: 2rem;
+        border-radius: 0;
+    }
+
+    .action-group .action-btn:first-child {
+        border-top-left-radius: 0.35rem;
+        border-bottom-left-radius: 0.35rem;
+    }
+
+    .action-group .action-btn:last-child {
+        border-top-right-radius: 0.35rem;
+        border-bottom-right-radius: 0.35rem;
+    }
+
+    .input-group-lg > .form-control,
+    .input-group-lg > .input-group-text,
+    .input-group-lg > .btn {
+        border-radius: 0.6rem;
+    }
+
+    .input-group > .form-control.border-start-0 {
+        border-left: 0 !important;
+    }
+</style>

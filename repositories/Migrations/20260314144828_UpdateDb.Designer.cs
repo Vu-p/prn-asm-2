@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using repositories;
 
@@ -11,9 +12,11 @@ using repositories;
 namespace repositories.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260314144828_UpdateDb")]
+    partial class UpdateDb
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,7 +56,7 @@ namespace repositories.Migrations
                     b.HasIndex("AccountEmail")
                         .IsUnique();
 
-                    b.ToTable("Accounts", (string)null);
+                    b.ToTable("Accounts");
 
                     b.HasData(
                         new
@@ -102,7 +105,7 @@ namespace repositories.Migrations
 
                     b.HasIndex("ParentCategoryId");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("models.NewsArticle", b =>
@@ -158,7 +161,7 @@ namespace repositories.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("NewsArticles", (string)null);
+                    b.ToTable("NewsArticles");
                 });
 
             modelBuilder.Entity("models.NewsTag", b =>
@@ -173,7 +176,7 @@ namespace repositories.Migrations
 
                     b.HasIndex("TagId");
 
-                    b.ToTable("NewsTags", (string)null);
+                    b.ToTable("NewsTags");
                 });
 
             modelBuilder.Entity("models.Tag", b =>
@@ -195,7 +198,7 @@ namespace repositories.Migrations
 
                     b.HasKey("TagId");
 
-                    b.ToTable("Tags", (string)null);
+                    b.ToTable("Tags");
                 });
 
             modelBuilder.Entity("models.Category", b =>

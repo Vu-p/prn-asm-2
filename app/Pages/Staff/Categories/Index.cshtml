@@ -1,57 +1,81 @@
 @page
 @model app.Pages.Staff.Categories.IndexModel
 @{
-    ViewData["Title"] = "Category Management";
+    ViewData["Title"] = "Quản lý Chuyên mục";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Category Management</h2>
-        <button type="button" class="btn btn-primary" onclick="openCreateModal()">Create New Category</button>
+<div class="container-fluid">
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-lg mb-4" style="background-color: var(--primary-color); border-radius: 1rem;">
+        <div class="card-body p-4">
+            <div class="row align-items-center">
+                <div class="col-lg-8 text-white">
+                    <h2 class="fw-bold mb-2"><i class="bi bi-folder-fill me-2"></i>Quản lý Chuyên mục</h2>
+                    <p class="mb-0" style="color: var(--secondary-color);">Quản lý danh mục và phân loại bài viết</p>
+                </div>
+                <div class="col-lg-4 text-lg-end mt-3 mt-lg-0">
+                    <button type="button" class="btn btn-lg shadow" style="background-color: var(--accent-color); color: var(--primary-color); font-weight: 600;" onclick="openCreateModal()">
+                        <i class="bi bi-plus-circle me-2"></i>Tạo chuyên mục mới
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form method="get" class="row row-cols-lg-auto g-3 align-items-center">
-                <div class="col-12">
-                    <input type="text" name="SearchTerm" class="form-control" placeholder="Search categories..." value="@Model.SearchTerm">
-                </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-secondary">Search</button>
-                </div>
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <label class="form-label fw-semibold text-muted small mb-2">TÌM KIẾM CHUYÊN MỤC</label>
+            <form method="get" class="input-group input-group-lg">
+                <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                <input id="searchInput" type="text" name="SearchTerm" class="form-control border-start-0" placeholder="Nhập tên hoặc mô tả..." value="@Model.SearchTerm">
+                <button type="submit" class="btn btn-primary px-4">Tìm</button>
             </form>
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-body">
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead class="table-light">
+                <table class="table table-hover align-middle mb-0" id="categoryTable">
+                    <thead style="background-color: var(--primary-color); color: white;">
                         <tr>
-                            <th>Name</th>
-                            <th>Parent</th>
-                            <th>Description</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th class="px-4 py-3">Tên chuyên mục</th>
+                            <th class="py-3">Chuyên mục cha</th>
+                            <th class="py-3">Mô tả</th>
+                            <th class="py-3">Trạng thái</th>
+                            <th class="py-3 text-center">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var category in Model.Categories)
                         {
-                            <tr>
-                                <td>@category.CategoryName</td>
+                            <tr class="category-row">
+                                <td class="category-name"><strong>@category.CategoryName</strong></td>
                                 <td>@(category.ParentCategory?.CategoryName ?? "-")</td>
-                                <td>@category.CategoryDesciption</td>
+                                <td class="text-muted">@category.CategoryDesciption</td>
                                 <td>
-                                    <span class="badge @(category.IsActive ? "bg-success" : "bg-secondary")">
-                                        @(category.IsActive ? "Active" : "Inactive")
-                                    </span>
+                                    @if (category.IsActive)
+                                    {
+                                        <span class="badge bg-success">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inactive</span>
+                                    }
                                 </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="openEditModal(@category.CategoryId, '@Html.Raw(category.CategoryName)', '@Html.Raw(category.CategoryDesciption)', @category.IsActive.ToString().ToLower(), '@category.ParentCategoryId')">Edit</button>
-                                    <form method="post" asp-page-handler="Delete" asp-route-id="@category.CategoryId" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this category?')">
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-warning" onclick="openEditModal(@category.CategoryId, '@Html.Raw(category.CategoryName)', '@Html.Raw(category.CategoryDesciption)', @category.IsActive.ToString().ToLower(), '@category.ParentCategoryId')">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                    <form method="post" asp-page-handler="Delete" asp-route-id="@category.CategoryId" style="display:inline;" onsubmit="return confirm('Bạn có chắc muốn xóa chuyên mục này?')">
+                                        <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash"></i></button>
                                     </form>
                                 </td>
                             </tr>
@@ -69,33 +93,33 @@
         <div class="modal-content">
             <form method="post" asp-page-handler="Upsert">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="categoryModalLabel">Category</h5>
+                    <h5 class="modal-title" id="categoryModalLabel">Chuyên mục</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <input type="hidden" asp-for="UpsertCategory.CategoryId" id="modalCategoryId" />
                     <div class="mb-3">
-                        <label asp-for="UpsertCategory.CategoryName" class="form-label">Name</label>
+                        <label asp-for="UpsertCategory.CategoryName" class="form-label">Tên chuyên mục</label>
                         <input asp-for="UpsertCategory.CategoryName" class="form-control" id="modalCategoryName" required />
                     </div>
                     <div class="mb-3">
-                        <label asp-for="UpsertCategory.CategoryDesciption" class="form-label">Description</label>
+                        <label asp-for="UpsertCategory.CategoryDesciption" class="form-label">Mô tả</label>
                         <textarea asp-for="UpsertCategory.CategoryDesciption" class="form-control" id="modalCategoryDesc" required></textarea>
                     </div>
                     <div class="mb-3">
-                        <label asp-for="UpsertCategory.ParentCategoryId" class="form-label">Parent Category</label>
+                        <label asp-for="UpsertCategory.ParentCategoryId" class="form-label">Chuyên mục cha</label>
                         <select asp-for="UpsertCategory.ParentCategoryId" class="form-select" id="modalCategoryParent" asp-items="@(new SelectList(Model.ParentCategories, "CategoryId", "CategoryName"))">
-                            <option value="">-- None (Root) --</option>
+                            <option value="">-- Không có --</option>
                         </select>
                     </div>
                     <div class="form-check mb-3">
                         <input asp-for="UpsertCategory.IsActive" class="form-check-input" type="checkbox" id="modalCategoryActive" />
-                        <label asp-for="UpsertCategory.IsActive" class="form-check-label">Is Active</label>
+                        <label asp-for="UpsertCategory.IsActive" class="form-check-label">Kích hoạt</label>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thay đổi</button>
                 </div>
             </form>
         </div>
@@ -105,13 +129,21 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
+        document.getElementById('searchInput')?.addEventListener('input', function () {
+            const term = this.value.toLowerCase();
+            document.querySelectorAll('#categoryTable .category-row').forEach(row => {
+                const name = row.querySelector('.category-name')?.textContent.toLowerCase() || '';
+                row.style.display = name.includes(term) ? '' : 'none';
+            });
+        });
+
         function openCreateModal() {
             document.getElementById('modalCategoryId').value = '0';
             document.getElementById('modalCategoryName').value = '';
             document.getElementById('modalCategoryDesc').value = '';
             document.getElementById('modalCategoryActive').checked = true;
             document.getElementById('modalCategoryParent').value = '';
-            document.getElementById('categoryModalLabel').innerText = 'Create Category';
+            document.getElementById('categoryModalLabel').innerText = 'Tạo chuyên mục';
             new bootstrap.Modal(document.getElementById('categoryModal')).show();
         }
 
@@ -121,7 +153,7 @@
             document.getElementById('modalCategoryDesc').value = desc;
             document.getElementById('modalCategoryActive').checked = active;
             document.getElementById('modalCategoryParent').value = parentId || '';
-            document.getElementById('categoryModalLabel').innerText = 'Edit Category';
+            document.getElementById('categoryModalLabel').innerText = 'Chỉnh sửa chuyên mục';
             new bootstrap.Modal(document.getElementById('categoryModal')).show();
         }
     </script>

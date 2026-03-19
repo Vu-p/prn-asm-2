@@ -110,7 +110,15 @@
 @section Scripts {
     <script src="~/lib/signalr/signalr.min.js"></script>
     <script>
-        const currentSelectedCategoryId = @(Model.SelectedCategoryId?.ToString() ?? "null");
+        const selectedCategoryIds = @Html.Raw(Model.SelectedCategoryIdsJson);
+
+        function matchCurrentFilter(article) {
+            if (selectedCategoryIds.length === 0) {
+                return true;
+            }
+
+            return selectedCategoryIds.includes(article.categoryId);
+        }
 
         const connection = new signalR.HubConnectionBuilder()
             .withUrl("/hubs/news")
@@ -154,7 +162,7 @@
         }
 
         connection.on("ArticleCreated", function (article) {
-            if (article.newsStatus === 1 && (currentSelectedCategoryId === null || article.categoryId === currentSelectedCategoryId)) {
+            if (article.newsStatus === 1 && matchCurrentFilter(article)) {
                 const container = document.getElementById('newsContainer');
                 container.insertAdjacentHTML('afterbegin', createCardHtml(article));
                 checkEmpty();
@@ -163,7 +171,7 @@
 
         connection.on("ArticleUpdated", function (article) {
             const card = document.getElementById(`article-${article.newsArticleId}`);
-            if (article.newsStatus === 1 && (currentSelectedCategoryId === null || article.categoryId === currentSelectedCategoryId)) {
+            if (article.newsStatus === 1 && matchCurrentFilter(article)) {
                 if (card) {
                     updateCard(card, article);
                 } else {

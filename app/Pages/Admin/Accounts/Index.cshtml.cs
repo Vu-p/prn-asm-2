@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using models;
 using services;
+using System.Security.Claims;
 
 namespace app.Pages.Admin.Accounts;
 
@@ -51,13 +52,20 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnPostDeleteAsync(short id)
     {
+        var currentUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (short.TryParse(currentUserIdClaim, out var currentUserId) && currentUserId == id)
+        {
+            TempData["ErrorMessage"] = "Bạn không thể xóa tài khoản đang đăng nhập.";
+            return RedirectToPage();
+        }
+
         try
         {
             await _accountService.DeleteAsync(id);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "Cannot delete this account. It may be associated with existing news articles.";
+            TempData["ErrorMessage"] = ex.Message;
         }
         return RedirectToPage();
     }
